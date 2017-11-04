@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>element</title>
+    <link rel="stylesheet" href="element/element.css">
+    <link rel="stylesheet" href="common.css">
+</head>
+<body>
+<div id="app">
+    <el-menu mode="horizontal" @select="handleSelect" background-color="#545c64" text-color="#fff" active-text-color="#ffd04b">
+        <el-menu-item>处理中心</el-menu-item>
+        <el-submenu>
+            <template slot="title">我的工作台</template>
+            <el-menu-item>选项1</el-menu-item>
+            <el-menu-item>选项2</el-menu-item>
+            <el-menu-item>选项3</el-menu-item>
+        </el-submenu>
+    </el-menu>
+    <el-row>
+        <el-col :xs="1" :sm="2" :md="3" style="height:100%;">
+            <el-menu @select="menuSelect" :collapse="isCollapse" v-for="item in items" :key="item">
+                <el-submenu :index="item.url">
+                    <template slot="title"><i class="el-icon-location">
+                    </i><span style="font-size: small">{{ item.text }}</span>
+                    </template>
+                    <div v-for="item2 in item.children" :key="item2">
+                        <el-menu-item :index="item2.url"><i class="el-icon-menu"></i>
+                            <span slot="title" style="font-size: small">{{ item2.text }}</span>
+                        </el-menu-item>
+                    </div>
+                </el-submenu>
+            </el-menu>
+        </el-col>
+        <el-col :xs="23" :sm="22" :md="21" style="padding: 5px"><a href="javascript:void(0)" v-for="(item, index) in iframes" :key="item"
+                                                                   @click="clickfun($event)" :data-id="index">
+            <el-tag style="margin-left: 5px; padding: 0 10px 0 0;"><i class="el-icon-close" @click.stop="menuClose($event)" :data-id="index"></i>
+                {{item.text }}
+            </el-tag>
+        </a>
+            <div style="margin-left: 5px">
+                <iframe v-for="item in iframes" :key="item" :data-id="item.menuId" :src="item.menuSrc" v-show="item.show" width="100%"
+                        :height="item.height" frameborder="false" allowtransparency="true"></iframe>
+            </div>
+        </el-col>
+    </el-row>
+</div>
+<script src="vue/vue.js"></script>
+<script src="element/element.js"></script>
+<script type="text/javascript"> let vm = new Vue({
+    el: '#app',
+    data: {
+        activeIndex: '1',
+        activeIndex2: '1',
+        isCollapse: false,
+        items: [],
+        iframes: [],
+        clientHeight: document.documentElement.clientHeight - 120,
+        clientWidth: document.documentElement.clientWidth
+    },
+    created: function () {
+        let self = this;
+        self.items = [{url: "/test1", text: "test1", children: [{url: "test1.html", text: "test1"}]}, {
+            url: "/test",
+            text: "test2",
+            children: [{url: "test2.html", text: "test2"}]
+        }, {url: "/test", text: "test3", children: [{url: "test3.html", text: "test3"}]}, {url: "/test", text: "manage1"},];
+        self.iframes = [{menuId: "1", menuSrc: "test1.html", show: true, text: "manage1", height: this.clientHeight},]
+    },
+    mounted: function () {
+        let self = this;
+        window.onresize = function () {
+            self.clientHeight = document.documentElement.clientHeight - 120;
+            for (let i = 0; i < self.iframes.length; i++) {
+                self.iframes[i].height = self.clientHeight;
+            }
+            self.clientWidth = document.documentElement.clientWidth;
+        };
+        window.onresize();
+    },
+    watch: {
+        clientWidth: function (val) {
+            let self = this;
+            self.isCollapse = val < 1000;
+        }
+    },
+    methods: {
+        handleSelect: function (key, keyPath) {
+            console.log(key, keyPath);
+        }, handleOpen: function (key, keyPath) {
+            console.log(key, keyPath);
+        }, handleClose: function (key, keyPath) {
+            console.log(key, keyPath);
+        }, menuSelect: function (key, keyPath) {
+            console.log(key, keyPath);
+            let self = this;
+            self.closeAllIframe();
+            let iframe = {menuId: key, menuSrc: key, show: true, text: key, height: self.clientHeight};
+            let index = function () {
+                let indexTemp = -1;
+                for (let i = 0; i < self.iframes.length; i++) {
+                    if (self.iframes[i].menuSrc === iframe.menuSrc) {
+                        indexTemp = i;
+                    }
+                }
+                return indexTemp;
+            }();
+            if (index >= 0) {
+                self.toggleIframe(index);
+            } else {
+                self.iframes.push(iframe);
+            }
+        }, clickfun: function (e) {
+            let self = this;
+            self.toggleIframe(e.currentTarget.getAttribute("data-id"))
+        }, toggleIframe: function (index) {
+            let self = this;
+            self.closeAllIframe();
+            let position = index === self.iframes.length ? self.iframes.length - 1 : index;
+            if (position >= 0) {
+                self.iframes[position].show = true;
+            }
+        }, closeAllIframe: function () {
+            let self = this;
+            for (let i = 0; i < self.iframes.length; i++) {
+                self.iframes[i].show = false
+            }
+        }, menuClose: function (e) {
+            let self = this;
+            let index = parseInt(e.currentTarget.getAttribute("data-id"));
+            self.iframes.splice(index, 1);
+            self.toggleIframe(index)
+        }
+    }
+});</script>
+</body>
+</html>
